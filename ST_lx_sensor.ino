@@ -6,6 +6,9 @@
    
 Adafruit_TSL2561_Unified tsl = Adafruit_TSL2561_Unified(TSL2561_ADDR_FLOAT, 12345);
 
+#define PIN_THING_RX    3
+#define PIN_THING_TX    2 
+
 void displaySensorDetails() {
   sensor_t sensor;
   tsl.getSensor(&sensor);
@@ -23,9 +26,9 @@ void displaySensorDetails() {
 
 void configureSensor() {
   /* You can also manually set the gain or enable auto-gain support */
-  // tsl.setGain(TSL2561_GAIN_1X);      /* No gain ... use in bright light to avoid sensor saturation */
+  tsl.setGain(TSL2561_GAIN_1X);      /* No gain ... use in bright light to avoid sensor saturation */
   // tsl.setGain(TSL2561_GAIN_16X);     /* 16x gain ... use in low light to boost sensitivity */
-  tsl.enableAutoRange(true);            /* Auto-gain ... switches automatically between 1x and 16x */
+  // tsl.enableAutoRange(true);            /* Auto-gain ... switches automatically between 1x and 16x */
   
   /* Changing the integration time gives you better sensor resolution (402ms = 16-bit data) */
   tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_13MS);      /* fast but low resolution */
@@ -40,18 +43,16 @@ void configureSensor() {
 }
 
 SmartThingsCallout_t messageCallout;    // call out function forward decalaration
-SmartThings smartthing;
+SmartThings smartthing(PIN_THING_RX, PIN_THING_TX, messageCallout);
 
 bool isDebugEnabled;    // enable or disable debug in this example
 int stateNetwork;       // state of the network 
 
-void setNetworkStateLED()
-{
+void setNetworkStateLED() {
   SmartThingsNetworkState_t tempState = smartthing.shieldGetLastNetworkState();
   if (tempState != stateNetwork)
   {
-    switch (tempState)
-    {
+    switch (tempState) {
       case STATE_NO_NETWORK:
         if (isDebugEnabled) Serial.println("NO_NETWORK");
         smartthing.shieldSetLED(2, 0, 0); // red
@@ -103,29 +104,30 @@ void setup(void)
   /* Setup the sensor gain and integration time */
   configureSensor();
   
-  /* We're ready to go! */
+  /* We're ≥ready to go! */
   Serial.println("");
 }
 
 void loop(void) 
 {
-  smartthing.run;
+  smartthing.run();
   setNetworkStateLED();
     
   /* Get a new sensor event */ 
   sensors_event_t event;
   tsl.getEvent(&event);
  
-  /* Display the results (light is measured in lux) */
-  if (event.light)
-  {
-    Serial.print(event.light); Serial.println(" lux");
-  }
-  else
-  {
-    /* If event.light = 0 lux the sensor is probably saturated
-       and no reliable data could be generated! */
-    Serial.println("Sensor overload");
-  }
+  Serial.print(event.light); Serial.println(" lux");
+
   delay(1000);
+}
+
+void messageCallout(String message) {
+  // if debug is enabled print out the received message
+  if (isDebugEnabled)
+  {
+    Serial.print("Received message: '");
+    Serial.print(message);
+    Serial.println("' ");
+  }
 }
