@@ -6,6 +6,7 @@ This allows a TSL2561 (https://www.adafruit.com/products/439) to measure lux and
 The TSL2561 communicates via A4 and A5 on the Arduino Uno. Power, ground, etc. are standard. Instructions for wiring are on the Adafruit product page.
 
 Installation:
+
 1. Connect your SmartThings shield to your hub via the app (android or iphone). It will show up as a generic device, which is good.
 
 2. Upload the .ino sketch to your arduino.
