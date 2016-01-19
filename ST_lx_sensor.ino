@@ -21,24 +21,24 @@ void displaySensorDetails() {
   Serial.print  ("Resolution:   "); Serial.print(sensor.resolution); Serial.println(" lux");  
   Serial.println("------------------------------------");
   Serial.println("");
-  delay(500);
+  delay(250);
 }
 
 void configureSensor() {
   /* You can also manually set the gain or enable auto-gain support */
-  tsl.setGain(TSL2561_GAIN_1X);      /* No gain ... use in bright light to avoid sensor saturation */
+  // tsl.setGain(TSL2561_GAIN_1X);      /* No gain ... use in bright light to avoid sensor saturation */
   // tsl.setGain(TSL2561_GAIN_16X);     /* 16x gain ... use in low light to boost sensitivity */
-  // tsl.enableAutoRange(true);            /* Auto-gain ... switches automatically between 1x and 16x */
+  tsl.enableAutoRange(true);            /* Auto-gain ... switches automatically between 1x and 16x */
   
   /* Changing the integration time gives you better sensor resolution (402ms = 16-bit data) */
-  tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_13MS);      /* fast but low resolution */
+  // tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_13MS);      /* fast but low resolution */
   // tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_101MS);  /* medium resolution and speed   */
-  // tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_402MS);  /* 16-bit data but slowest conversions */
+  tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_402MS);  /* 16-bit data but slowest conversions */
 
   /* Update these values depending on what you've set above! */  
   Serial.println("------------------------------------");
   Serial.print  ("Gain:         "); Serial.println("Auto");
-  Serial.print  ("Timing:       "); Serial.println("13 ms");
+  Serial.print  ("Timing:       "); Serial.println("402 ms");
   Serial.println("------------------------------------");
 }
 
@@ -108,16 +108,19 @@ void setup(void)
   Serial.println("");
 }
 
-void loop(void) 
-{
+void loop(void) {
+  
   smartthing.run();
   setNetworkStateLED();
-    
+
   /* Get a new sensor event */ 
   sensors_event_t event;
   tsl.getEvent(&event);
+
+  String luxString = String(event.light, 0);
  
-  Serial.print(event.light); Serial.println(" lux");
+  Serial.print(luxString); Serial.println(" lux");
+  smartthing.send(luxString);
 
   delay(1000);
 }
