@@ -9,9 +9,67 @@ Adafruit_TSL2561_Unified tsl = Adafruit_TSL2561_Unified(TSL2561_ADDR_FLOAT, 1234
 #define PIN_THING_RX    3
 #define PIN_THING_TX    2 
 
+SmartThingsCallout_t messageCallout;    // call out function forward decalaration
+SmartThings smartthing(PIN_THING_RX, PIN_THING_TX, messageCallout);
+
+bool isDebugEnabled;    // enable or disable debug in this example
+int stateNetwork;       // state of the network 
+
+void setup() {
+  isDebugEnabled = true;
+  stateNetwork = STATE_JOINED;  // set to joined to keep state off if off
+  Serial.begin(9600);
+//  Serial.println("Light Sensor Test"); Serial.println("");
+  
+  /* Initialise the sensor */
+  if(!tsl.begin())
+  {
+    /* There was a problem detecting the ADXL345 ... check your connections */
+    Serial.print("Ooops, no TSL2561 detected ... Check your wiring or I2C ADDR!");
+    while(1);
+  }
+  
+  /* Display some basic information on this sensor */
+//  displaySensorDetails();
+  
+  /* Setup the sensor gain and integration time */
+  configureSensor();
+}
+
+void loop() {
+  
+  smartthing.run();
+  setNetworkStateLED();
+
+  /* Get a new sensor event */ 
+  sensors_event_t event;
+  tsl.getEvent(&event);
+
+  String luxString = String(event.light, 0);
+  
+  /* For debugging
+  Serial.print(luxString); Serial.println(" lux");
+  */
+  
+  smartthing.send(luxString);
+
+  delay(5000);
+}
+
+void messageCallout(String message) {
+  // if debug is enabled print out the received message
+  if (isDebugEnabled)
+  {
+    Serial.print("Received message: '");
+    Serial.print(message);
+    Serial.println("' ");
+  }
+}
+
 void displaySensorDetails() {
   sensor_t sensor;
   tsl.getSensor(&sensor);
+  
   Serial.println("------------------------------------");
   Serial.print  ("Sensor:       "); Serial.println(sensor.name);
   Serial.print  ("Driver Ver:   "); Serial.println(sensor.version);
@@ -35,18 +93,12 @@ void configureSensor() {
   // tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_101MS);  /* medium resolution and speed   */
   tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_402MS);  /* 16-bit data but slowest conversions */
 
-  /* Update these values depending on what you've set above! */  
+  /* Update these values depending on what you've set above! For debug only! 
   Serial.println("------------------------------------");
   Serial.print  ("Gain:         "); Serial.println("Auto");
   Serial.print  ("Timing:       "); Serial.println("402 ms");
-  Serial.println("------------------------------------");
+  Serial.println("------------------------------------"); */
 }
-
-SmartThingsCallout_t messageCallout;    // call out function forward decalaration
-SmartThings smartthing(PIN_THING_RX, PIN_THING_TX, messageCallout);
-
-bool isDebugEnabled;    // enable or disable debug in this example
-int stateNetwork;       // state of the network 
 
 void setNetworkStateLED() {
   SmartThingsNetworkState_t tempState = smartthing.shieldGetLastNetworkState();
@@ -80,57 +132,5 @@ void setNetworkStateLED() {
         break;
     }
     stateNetwork = tempState; 
-  }
-}
-
-void setup(void) 
-{
-  isDebugEnabled = true;
-  stateNetwork = STATE_JOINED;  // set to joined to keep state off if off
-  Serial.begin(9600);
-  Serial.println("Light Sensor Test"); Serial.println("");
-  
-  /* Initialise the sensor */
-  if(!tsl.begin())
-  {
-    /* There was a problem detecting the ADXL345 ... check your connections */
-    Serial.print("Ooops, no TSL2561 detected ... Check your wiring or I2C ADDR!");
-    while(1);
-  }
-  
-  /* Display some basic information on this sensor */
-  displaySensorDetails();
-  
-  /* Setup the sensor gain and integration time */
-  configureSensor();
-  
-  /* We're ≥ready to go! */
-  Serial.println("");
-}
-
-void loop(void) {
-  
-  smartthing.run();
-  setNetworkStateLED();
-
-  /* Get a new sensor event */ 
-  sensors_event_t event;
-  tsl.getEvent(&event);
-
-  String luxString = String(event.light, 0);
- 
-  Serial.print(luxString); Serial.println(" lux");
-  smartthing.send(luxString);
-
-  delay(1000);
-}
-
-void messageCallout(String message) {
-  // if debug is enabled print out the received message
-  if (isDebugEnabled)
-  {
-    Serial.print("Received message: '");
-    Serial.print(message);
-    Serial.println("' ");
   }
 }
