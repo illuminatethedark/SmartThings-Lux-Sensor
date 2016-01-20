@@ -18,23 +18,13 @@ metadata {
 	definition (name: "Arduino Lux Sensor", namespace: "illuminatethedark", author: "Daniel Marcus") {
         capability "Illuminance Measurement"
         }
-        
-    preferences {
-    	input "illuminanceSampleRate", "number", title: "Light Sensor Sampling Interval (seconds)", description: "Sampling Interval (seconds)", defaultValue: 30, required: true, displayDuringSetup: true
-	}
 
 	simulator {
-    	status "on":  "catchall: 0104 0000 01 01 0040 00 0A21 00 00 0000 0A 00 0A6F6E"
-        status "off": "catchall: 0104 0000 01 01 0040 00 0A21 00 00 0000 0A 00 0A6F6666"
-
-        // reply messages
-        reply "raw 0x0 { 00 00 0a 0a 6f 6e }": "catchall: 0104 0000 01 01 0040 00 0A21 00 00 0000 0A 00 0A6F6E"
-        reply "raw 0x0 { 00 00 0a 0a 6f 66 66 }": "catchall: 0104 0000 01 01 0040 00 0A21 00 00 0000 0A 00 0A6F6666"
-	}
+    	}
 
 	tiles {
 		valueTile("illuminance", "device.illuminance", width: 2, height: 2, canChangeIcon: false, canChangeBackground: false) {
-			state("illuminance", label: '${currentValue} ${unit}', unit:"lux", icon: "st.Weather.weather11", backgroundColors:[
+			state("illuminance", label: '${currentValue}', backgroundColors:[
 					[value: 9, color: "#767676"],
 					[value: 315, color: "#ffa81e"],
 					[value: 1000, color: "#fbd41b"]
@@ -57,20 +47,4 @@ def parse(String description) {
 	def result = createEvent(name: "illuminance", value: zigbee.parse(description)?.text as Double)
     log.debug result?.descriptionText
     return result
-}
-
-def poll() {
-	//temporarily implement poll() to issue a configure() command to send the polling interval settings to the arduino
-	configure()
-}
-
-
-def configure() {
-	log.debug "Executing 'configure'"
-    //log.debug "illuminance " + illuminanceSampleRate + "|temphumid " + temphumidSampleRate + "|water " + waterSampleRate
-    log.debug "illuminance " + illuminanceSampleRate
-	[
-        zigbee.smartShield(text: "illuminance " + illuminanceSampleRate).format(),
-        "delay 1000"
-    ]
 }
