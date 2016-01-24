@@ -45,15 +45,19 @@ void loop() {
   sensors_event_t event;
   tsl.getEvent(&event);
 
-  String luxString = String(event.light, 0);
+  String luxString = String(event.light,0);
   
   /* For debugging
   Serial.print(luxString); Serial.println(" lux");
   */
-  
+  if (event.light > 12000) {
+    smartthing.send("12000");
+  } else {
   smartthing.send(luxString);
+  }
 
-  delay(5000);
+  delay(30000);
+  
 }
 
 void messageCallout(String message) {
