@@ -7,7 +7,7 @@
 Adafruit_TSL2561_Unified tsl = Adafruit_TSL2561_Unified(TSL2561_ADDR_FLOAT, 12345);
 
 #define PIN_THING_RX    3
-#define PIN_THING_TX    2 
+#define PIN_THING_TX    2
 
 SmartThingsCallout_t messageCallout;    // call out function forward decalaration
 SmartThings smartthing(PIN_THING_RX, PIN_THING_TX, messageCallout);
@@ -45,18 +45,17 @@ void loop() {
   sensors_event_t event;
   tsl.getEvent(&event);
 
-  String luxString = String(event.light,0);
-  
-  /* For debugging
-  Serial.print(luxString); Serial.println(" lux");
-  */
-  if (event.light > 12000) {
-    smartthing.send("12000");
+  int lux = event.light;
+
+  if (lux > 12000) {
+    String luxString = "12000";
+    smartthing.send(luxString);
   } else {
-  smartthing.send(luxString);
+    String luxString = String(lux,DEC);
+    smartthing.send(luxString);
   }
 
-  delay(30000);
+  delay(15000);
   
 }
 
